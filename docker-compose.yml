@@ -45,7 +45,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-smbu}:${POSTGRES_PASSWORD:-***REDACTED***}@db:5432/${POSTGRES_DB:-smbu_campus}
     command: >
-      sh -c "npx prisma migrate deploy && npx prisma db seed"
+      sh -c "npx prisma db push --accept-data-loss && npx prisma db seed"
     depends_on:
       db:
         condition: service_healthy
