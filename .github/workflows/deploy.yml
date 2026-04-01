@@ -1,0 +1,63 @@
+name: CD - Deploy to Server
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    branches: [main]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to server via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          port: ${{ secrets.SERVER_PORT }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            set -e
+
+            # Create project directory if not exists
+            mkdir -p /opt/smbu-campus
+
+            cd /opt/smbu-campus
+
+            # Clone or pull latest code
+            if [ -d ".git" ]; then
+              git pull origin main
+            else
+              git clone https://github.com/Yogdunana/smbu-smart-campus-system.git .
+            fi
+
+            # Create .env file if not exists
+            if [ ! -f .env ]; then
+              cat > .env << 'ENVEOF'
+            DATABASE_URL=postgresql://smbu:***REDACTED***@db:5432/smbu_campus
+            NEXTAUTH_URL=http://localhost:3000
+            NEXTAUTH_SECRET=deploy-secret-change-in-production-$(openssl rand -hex 16)
+            APP_PORT=3000
+            ENVEOF
+            fi
+
+            # Stop existing containers if any
+            docker compose down 2>/dev/null || true
+
+            # Build and start services
+            docker compose up -d --build
+
+            # Wait for services to be healthy
+            echo "Waiting for services to start..."
+            sleep 15
+
+            # Check container status
+            docker compose ps
+
+            echo "Deployment completed successfully!"
