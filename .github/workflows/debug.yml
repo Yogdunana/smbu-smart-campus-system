@@ -1,0 +1,50 @@
+name: Debug - Check Server Logs
+
+on:
+  workflow_dispatch:
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check app container logs
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          port: ${{ secrets.SERVER_PORT }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          timeout: 120s
+          command_timeout: 5m
+          script: |
+            echo "=== Docker Containers ==="
+            docker ps -a
+
+            echo ""
+            echo "=== App Container Logs (last 100 lines) ==="
+            docker logs smbu-campus-app --tail 100 2>&1
+
+            echo ""
+            echo "=== Init Container Logs ==="
+            docker logs smbu-campus-init --tail 50 2>&1
+
+            echo ""
+            echo "=== DB Container Logs ==="
+            docker logs smbu-campus-db --tail 20 2>&1
+
+            echo ""
+            echo "=== .env file ==="
+            cat /opt/smbu-campus/.env 2>/dev/null || echo "No .env file"
+
+            echo ""
+            echo "=== Disk Space ==="
+            df -h
+
+            echo ""
+            echo "=== Memory ==="
+            free -h
+
+            echo ""
+            echo "=== Test localhost:3000 ==="
+            curl -s -o /dev/null -w "HTTP Status: %{http_code}\n" http://localhost:3000/ 2>&1 || echo "curl failed"
+            curl -s -o /dev/null -w "HTTP Status: %{http_code}\n" http://localhost:3000/dashboard 2>&1 || echo "curl failed"
