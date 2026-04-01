@@ -1,0 +1,55 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smbu-campus-app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-smbu}:${POSTGRES_PASSWORD:-***REDACTED***}@db:5432/${POSTGRES_DB:-smbu_campus}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-***REDACTED***}
+      - NODE_ENV=production
+    volumes:
+      - uploads:/app/public/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    container_name: smbu-campus-db
+    restart: unless-stopped
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-smbu}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-***REDACTED***}
+      - POSTGRES_DB=${POSTGRES_DB:-smbu_campus}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-smbu}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  init:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smbu-campus-init
+    restart: "no"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-smbu}:${POSTGRES_PASSWORD:-***REDACTED***}@db:5432/${POSTGRES_DB:-smbu_campus}
+    command: >
+      sh -c "npx prisma migrate deploy && npx prisma db seed"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  uploads:
