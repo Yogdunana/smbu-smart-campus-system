@@ -91,16 +91,15 @@ jobs:
 
             cd /opt/smbu-campus
 
-            # Create .env file if not exists
-            if [ ! -f .env ]; then
-              echo "=== Creating .env file ==="
-              cat > .env << 'ENVEOF'
+            # Create .env file if not exists (overwrite to update NEXTAUTH_URL)
+            echo "=== Creating .env file ==="
+            SERVER_IP=$(hostname -I | awk '{print $1}')
+            cat > .env << ENVEOF
             DATABASE_URL=postgresql://smbu:***REDACTED***@db:5432/smbu_campus
-            NEXTAUTH_URL=http://localhost:3000
+            NEXTAUTH_URL=http://${SERVER_IP}:3000
             NEXTAUTH_SECRET=deploy-secret-change-in-production-$(openssl rand -hex 16)
             APP_PORT=3000
             ENVEOF
-            fi
 
             # Stop existing containers if any
             echo "=== Stopping existing containers ==="
