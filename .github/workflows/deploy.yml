@@ -72,13 +72,14 @@ jobs:
               echo "Docker already installed: $(docker --version)"
             fi
 
-            # Configure Docker mirror for China
+            # Configure Docker mirror for China - use multiple working mirrors
             mkdir -p /etc/docker
             cat > /etc/docker/daemon.json << 'DOCKEREOF'
             {
               "registry-mirrors": [
-                "https://mirror.ccs.tencentyun.com",
-                "https://docker.mirrors.ustc.edu.cn"
+                "https://docker.1ms.run",
+                "https://docker.xuanyuan.me",
+                "https://docker.m.daocloud.io"
               ]
             }
             DOCKEREOF
