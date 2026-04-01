@@ -29,10 +29,6 @@ export default function ReviewPage() {
   const [rejectReason, setRejectReason] = useState('');
   const [dialogType, setDialogType] = useState<'approve' | 'reject'>('approve');
 
-  useEffect(() => {
-    fetchItems();
-  }, []);
-
   const fetchItems = async () => {
     const res = await fetch('/api/profile/review');
     if (res.ok) {
@@ -40,6 +36,10 @@ export default function ReviewPage() {
       setItems(data);
     }
   };
+
+  useEffect(() => {
+    fetchItems();
+  }, []);
 
   const handleAction = async () => {
     if (!selectedItem) return;

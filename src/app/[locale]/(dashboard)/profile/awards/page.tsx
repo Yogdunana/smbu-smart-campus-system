@@ -31,10 +31,6 @@ export default function AwardsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState({ title: '', level: '', awardDate: '', description: '' });
 
-  useEffect(() => {
-    fetchAwards();
-  }, []);
-
   const fetchAwards = async () => {
     const res = await fetch('/api/profile/awards');
     if (res.ok) {
@@ -42,6 +38,10 @@ export default function AwardsPage() {
       setAwards(data);
     }
   };
+
+  useEffect(() => {
+    fetchAwards();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

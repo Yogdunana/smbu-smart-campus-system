@@ -43,10 +43,6 @@ export default function SkillsPage() {
   const [selectedCategory, setSelectedCategory] = useState('TECHNICAL');
   const [newSkillId, setNewSkillId] = useState('');
 
-  useEffect(() => {
-    fetchSkills();
-  }, []);
-
   const fetchSkills = async () => {
     const res = await fetch('/api/profile/skills');
     if (res.ok) {
@@ -55,6 +51,10 @@ export default function SkillsPage() {
       setAllSkills(data.allSkills || []);
     }
   };
+
+  useEffect(() => {
+    fetchSkills();
+  }, []);
 
   const handleAddSkill = async () => {
     if (!newSkillId) return;

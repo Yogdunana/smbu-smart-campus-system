@@ -31,12 +31,12 @@ export default function OrganizationPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState({ fullName: '', shortName: '', nature: 'STUDENT_ORG', description: '', teacherAdvisor: '' });
 
-  useEffect(() => { fetchOrgs(); }, []);
-
   const fetchOrgs = async () => {
     const res = await fetch('/api/organization');
     if (res.ok) setOrgs(await res.json());
   };
+
+  useEffect(() => { fetchOrgs(); }, []);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();

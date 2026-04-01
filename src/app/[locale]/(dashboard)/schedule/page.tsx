@@ -67,11 +67,6 @@ export default function SchedulePage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [planForm, setPlanForm] = useState({ title: '', description: '', priority: 'MEDIUM', startTime: '', endTime: '', location: '' });
 
-  useEffect(() => {
-    fetchCourses();
-    fetchPlans();
-  }, []);
-
   const fetchCourses = async () => {
     const res = await fetch('/api/mock/course-schedule');
     if (res.ok) setCourses(await res.json());
@@ -81,6 +76,11 @@ export default function SchedulePage() {
     const res = await fetch('/api/schedule/plans');
     if (res.ok) setPlans(await res.json());
   };
+
+  useEffect(() => {
+    fetchCourses();
+    fetchPlans();
+  }, []);
 
   const handleCreatePlan = async (e: React.FormEvent) => {
     e.preventDefault();

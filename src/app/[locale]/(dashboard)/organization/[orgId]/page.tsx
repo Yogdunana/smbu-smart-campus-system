@@ -39,12 +39,12 @@ export default function OrgDetailPage() {
   const [taskDialogOpen, setTaskDialogOpen] = useState(false);
   const [taskForm, setTaskForm] = useState({ title: '', description: '', type: 'SINGLE_DEPT', priority: 'MEDIUM', deadline: '' });
 
-  useEffect(() => { fetchOrg(); }, [orgId]);
-
   const fetchOrg = async () => {
     const res = await fetch(`/api/organization/${orgId}`);
     if (res.ok) setOrg(await res.json());
   };
+
+  useEffect(() => { fetchOrg(); }, [orgId]);
 
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();

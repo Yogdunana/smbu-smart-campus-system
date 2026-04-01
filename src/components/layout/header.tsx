@@ -18,7 +18,6 @@ import { toast } from 'sonner';
 
 export function Header() {
   const t = useTranslations('nav');
-  const tAuth = useTranslations('auth');
   const { data: session } = useSession();
   const router = useRouter();
 
