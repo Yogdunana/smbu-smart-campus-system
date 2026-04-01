@@ -1,0 +1,92 @@
+name: Fix - Direct Server Fix
+
+on:
+  workflow_dispatch:
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Sync code to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          port: ${{ secrets.SERVER_PORT }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          timeout: 120s
+          source: "."
+          target: "/opt/smbu-campus"
+          strip_components: 0
+          rm: true
+
+      - name: Full rebuild and fix on server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          port: ${{ secrets.SERVER_PORT }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          timeout: 120s
+          command_timeout: 30m
+          script: |
+            set -e
+
+            cd /opt/smbu-campus
+
+            # Write correct .env
+            cat > .env << 'ENVEOF'
+            DATABASE_URL=postgresql://smbu:***REDACTED***@db:5432/smbu_campus
+            NEXTAUTH_URL=http://***REDACTED***:3000
+            NEXTAUTH_SECRET=smbu-campus-production-secret-2024-fixed
+            AUTH_TRUST_HOST=true
+            AUTH_SECRET=smbu-campus-production-secret-2024-fixed
+            APP_PORT=3000
+            ENVEOF
+
+            echo "=== .env ==="
+            cat .env
+
+            # Stop everything
+            docker compose down -v 2>/dev/null || true
+
+            # Rebuild from scratch
+            echo "=== Building ==="
+            docker compose build --no-cache 2>&1 | tail -20
+
+            echo "=== Starting ==="
+            docker compose up -d
+
+            # Wait for init to complete
+            echo "=== Waiting for init ==="
+            for i in $(seq 1 60); do
+              if docker ps -a | grep -q smbu-campus-init; then
+                INIT_STATUS=$(docker inspect -f '{{.State.Status}}' smbu-campus-init 2>/dev/null || echo "running")
+                if [ "$INIT_STATUS" = "exited" ]; then
+                  INIT_EXIT=$(docker inspect -f '{{.State.ExitCode}}' smbu-campus-init 2>/dev/null || echo "1")
+                  echo "Init exited with code: $INIT_EXIT"
+                  break
+                fi
+              fi
+              sleep 5
+            done
+
+            echo "=== Init logs ==="
+            docker logs smbu-campus-init 2>&1 | tail -30
+
+            echo "=== App logs ==="
+            docker logs smbu-campus-app 2>&1 | tail -30
+
+            echo "=== Container status ==="
+            docker ps -a
+
+            echo "=== Test ==="
+            sleep 5
+            curl -sI http://localhost:3000/ 2>&1 | head -5
+            curl -sI http://localhost:3000/zh/dashboard 2>&1 | head -5
+            curl -sI http://localhost:3000/zh/login 2>&1 | head -5
+
+            echo "=== DONE ==="
