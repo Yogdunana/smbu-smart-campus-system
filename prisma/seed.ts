@@ -171,7 +171,7 @@ async function main() {
 
   for (const record of volunteerRecords) {
     await prisma.volunteerRecord.create({
-      data: { ...record, status: VolunteerStatus.APPROVED, source: 'MOCK' },
+      data: { ...record, activityDate: new Date(record.activityDate), status: VolunteerStatus.APPROVED, source: 'MOCK' },
     });
   }
 
