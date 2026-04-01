@@ -42,6 +42,7 @@ services:
       dockerfile: Dockerfile
     container_name: smbu-campus-init
     restart: "no"
+    user: root
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-smbu}:${POSTGRES_PASSWORD:-***REDACTED***}@db:5432/${POSTGRES_DB:-smbu_campus}
     command: >
