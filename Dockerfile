@@ -11,7 +11,6 @@ RUN apt-get update && apt-get install -y openssl --no-install-recommends && rm -
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-
 RUN npx prisma generate && npm run build
 
 # Stage 3: Production
@@ -26,17 +25,14 @@ RUN groupadd --system --gid 1001 nodejs && \
 
 COPY --from=builder /app/public ./public
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/package.json ./package.json
 
-# Copy i18n message files (not included in standalone output)
-COPY --from=builder /app/src/i18n/messages ./src/i18n/messages
-
-RUN mkdir -p /app/public/uploads && chown nextjs:nodejs /app/public/uploads
+RUN mkdir -p /app/public/uploads && chown -R nextjs:nodejs /app
 
 USER nextjs
 EXPOSE 3000
 ENV PORT=3000 HOSTNAME="0.0.0.0"
 
-CMD ["node", "server.js"]
+CMD ["npx", "next", "start"]
