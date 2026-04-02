@@ -67,7 +67,11 @@
     "noTasks": "No pending tasks",
     "hours": "{hours} hours",
     "totalVolunteerHours": "Total Volunteer Hours",
-    "totalStudents": "Total Students"
+    "totalStudents": "Total Students",
+    "committeeView": "Committee Admin",
+    "studentView": "Student Portal",
+    "activeOrgs": "Active Organizations",
+    "profileCompletionDetail": "Profile Completion"
   },
   "schedule": {
     "title": "Schedule & Task Management",

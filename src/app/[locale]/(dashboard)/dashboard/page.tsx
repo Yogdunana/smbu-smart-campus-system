@@ -17,11 +17,11 @@ export default async function DashboardPage() {
           {t('welcome', { name: user?.name || 'User' })}
         </h1>
         <p className="text-muted-foreground mt-1">
-          {isCommittee ? '团委管理端' : '学生端'}
+          {isCommittee ? t('committeeView') : t('studentView')}
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('todayCourses')}</CardTitle>
@@ -71,7 +71,7 @@ export default async function DashboardPage() {
               {isCommittee ? '5' : '75%'}
             </div>
             <p className="text-xs text-muted-foreground">
-              {isCommittee ? '个活跃组织' : '档案完成度'}
+              {isCommittee ? t('activeOrgs') : t('profileCompletionDetail')}
             </p>
           </CardContent>
         </Card>

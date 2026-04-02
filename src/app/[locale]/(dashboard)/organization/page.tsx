@@ -72,7 +72,7 @@ export default function OrganizationPage() {
                 <Label>{t('orgFullName')} <span className="text-red-500">*</span></Label>
                 <Input value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} required />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>{t('orgShortName')} <span className="text-red-500">*</span></Label>
                   <Input value={form.shortName} onChange={(e) => setForm({ ...form, shortName: e.target.value })} required />
@@ -107,7 +107,7 @@ export default function OrganizationPage() {
       {orgs.length === 0 ? (
         <div className="text-center py-10 text-muted-foreground">{t('noOrgs')}</div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {orgs.map((org) => (
             <Link key={org.id} href={`/organization/${org.id}`}>
               <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">

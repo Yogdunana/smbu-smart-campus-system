@@ -162,7 +162,7 @@ export default function SkillsPage() {
       </div>
 
       <Tabs defaultValue="TECHNICAL">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
           {CATEGORIES.map((cat) => (
             <TabsTrigger key={cat} value={cat}>
               {t('skillCategory.' + categoryKey(cat))}

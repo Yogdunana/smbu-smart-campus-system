@@ -101,7 +101,7 @@ export default function ReviewPage() {
                     <TableCell>
                       <Badge variant="secondary">{item.profileStatus}</Badge>
                     </TableCell>
-                    <TableCell className="flex gap-2">
+                    <TableCell className="flex flex-col sm:flex-row gap-1 sm:gap-2">
                       <Button size="sm" variant="outline" className="text-green-600" onClick={() => { setSelectedItem(item); setDialogType('approve'); }}>
                         <Check className="h-4 w-4 mr-1" />{t('approve')}
                       </Button>

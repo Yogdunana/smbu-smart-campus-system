@@ -130,7 +130,7 @@ export default function SchedulePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => setCurrentDate(addWeeks(currentDate, -1))}>←</Button>
@@ -151,7 +151,7 @@ export default function SchedulePage() {
                   <Label>{t('planDescription')}</Label>
                   <Input value={planForm.description} onChange={(e) => setPlanForm({ ...planForm, description: e.target.value })} />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>{t('startTime')}</Label>
                     <Input type="datetime-local" value={planForm.startTime} onChange={(e) => setPlanForm({ ...planForm, startTime: e.target.value })} required />
@@ -161,7 +161,7 @@ export default function SchedulePage() {
                     <Input type="datetime-local" value={planForm.endTime} onChange={(e) => setPlanForm({ ...planForm, endTime: e.target.value })} required />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>{t('location')}</Label>
                     <Input value={planForm.location} onChange={(e) => setPlanForm({ ...planForm, location: e.target.value })} />
@@ -197,7 +197,7 @@ export default function SchedulePage() {
           <Card>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
-                <div className="min-w-[800px]">
+                <div className="min-w-[600px]">
                   {/* Header */}
                   <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b">
                     <div className="p-2 text-xs text-muted-foreground"></div>

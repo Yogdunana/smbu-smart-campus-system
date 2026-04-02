@@ -67,7 +67,11 @@
     "noTasks": "Нет невыполненных задач",
     "hours": "{hours} часов",
     "totalVolunteerHours": "Всего волонтёрских часов",
-    "totalStudents": "Всего студентов"
+    "totalStudents": "Всего студентов",
+    "committeeView": "Панель комитета",
+    "studentView": "Студенческий портал",
+    "activeOrgs": "Активных организаций",
+    "profileCompletionDetail": "Заполненность профиля"
   },
   "schedule": {
     "title": "Управление расписанием",

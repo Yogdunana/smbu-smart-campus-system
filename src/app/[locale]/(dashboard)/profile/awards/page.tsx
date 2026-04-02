@@ -99,7 +99,7 @@ export default function AwardsPage() {
                 <Label>{t('awardTitle')} <span className="text-red-500">*</span></Label>
                 <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>{t('awardLevel')}</Label>
                   <Input value={form.level} onChange={(e) => setForm({ ...form, level: e.target.value })} placeholder="校级/市级/省级/国家级" />

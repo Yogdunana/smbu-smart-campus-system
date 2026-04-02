@@ -84,8 +84,9 @@ export default function OrgDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href="/organization">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-4">
+          <Link href="/organization">
           <Button variant="ghost" size="sm"><ArrowLeft className="h-4 w-4" /></Button>
         </Link>
         <div>
@@ -95,6 +96,7 @@ export default function OrgDetailPage() {
         <Badge variant={org.status === 'ACTIVE' ? 'default' : 'secondary'}>
           {org.status === 'ACTIVE' ? t('active') : t('suspended')}
         </Badge>
+        </div>
       </div>
 
       <Tabs defaultValue="tasks">
@@ -121,7 +123,7 @@ export default function OrgDetailPage() {
                     <Label>{t('taskDescription')}</Label>
                     <Textarea value={taskForm.description} onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })} />
                   </div>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label>{t('taskType')}</Label>
                       <Select value={taskForm.type} onValueChange={(v) => setTaskForm({ ...taskForm, type: v || 'SINGLE_DEPT' })}>
