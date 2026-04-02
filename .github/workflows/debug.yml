@@ -1,4 +1,4 @@
-name: Debug - Check Server Logs
+name: Debug - Enhanced
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ jobs:
   debug:
     runs-on: ubuntu-latest
     steps:
-      - name: Check app container logs
+      - name: Check everything
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -17,34 +17,45 @@ jobs:
           timeout: 120s
           command_timeout: 5m
           script: |
-            echo "=== Docker Containers ==="
-            docker ps -a
+            echo "=== Containers ==="
+            docker ps -a --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
             echo ""
-            echo "=== App Container Logs (last 100 lines) ==="
-            docker logs smbu-campus-app --tail 100 2>&1
+            echo "=== App logs (last 50) ==="
+            docker logs smbu-campus-app --tail 50 2>&1
 
             echo ""
-            echo "=== Init Container Logs ==="
-            docker logs smbu-campus-init --tail 50 2>&1
+            echo "=== Test login page ==="
+            curl -s -o /dev/null -w "Login page: HTTP %{http_code}\n" http://localhost:3000/zh/login
 
             echo ""
-            echo "=== DB Container Logs ==="
-            docker logs smbu-campus-db --tail 20 2>&1
+            echo "=== Test dashboard (no auth) ==="
+            curl -s -o /dev/null -w "Dashboard: HTTP %{http_code}\n" http://localhost:3000/zh/dashboard
 
             echo ""
-            echo "=== .env file ==="
-            cat /opt/smbu-campus/.env 2>/dev/null || echo "No .env file"
+            echo "=== Test dashboard with follow redirect ==="
+            curl -sI http://localhost:3000/zh/dashboard 2>&1 | head -10
 
             echo ""
-            echo "=== Disk Space ==="
-            df -h
+            echo "=== Test root ==="
+            curl -sI http://localhost:3000/ 2>&1 | head -5
 
             echo ""
-            echo "=== Memory ==="
-            free -h
+            echo "=== .env ==="
+            cat /opt/smbu-campus/.env
 
             echo ""
-            echo "=== Test localhost:3000 ==="
-            curl -s -o /dev/null -w "HTTP Status: %{http_code}\n" http://localhost:3000/ 2>&1 || echo "curl failed"
-            curl -s -o /dev/null -w "HTTP Status: %{http_code}\n" http://localhost:3000/dashboard 2>&1 || echo "curl failed"
+            echo "=== Check i18n files in container ==="
+            docker exec smbu-campus-app ls -la /app/src/i18n/messages/ 2>&1 || echo "NOT FOUND at /app/src/i18n/messages/"
+
+            echo ""
+            echo "=== NEXTAUTH_URL check ==="
+            docker exec smbu-campus-app printenv | grep -E "NEXTAUTH|AUTH|DATABASE" 2>&1
+
+            echo ""
+            echo "=== Check prisma client ==="
+            docker exec smbu-campus-app ls /app/node_modules/.prisma/client/ 2>&1 | head -5 || echo "NO PRISMA CLIENT"
+
+            echo ""
+            echo "=== Test actual dashboard HTML (first 500 chars) ==="
+            curl -s http://localhost:3000/zh/dashboard 2>&1 | head -c 500

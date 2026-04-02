@@ -65,7 +65,9 @@
     "taskCompletion": "任务完成率",
     "noCourses": "今天没有课程",
     "noTasks": "暂无待完成任务",
-    "hours": "{hours} 小时"
+    "hours": "{hours} 小时",
+    "totalVolunteerHours": "累计志愿时长",
+    "totalStudents": "学生总数"
   },
   "schedule": {
     "title": "时间与任务管理",

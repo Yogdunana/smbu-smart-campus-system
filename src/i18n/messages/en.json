@@ -65,7 +65,9 @@
     "taskCompletion": "Task Completion Rate",
     "noCourses": "No courses today",
     "noTasks": "No pending tasks",
-    "hours": "{hours} hours"
+    "hours": "{hours} hours",
+    "totalVolunteerHours": "Total Volunteer Hours",
+    "totalStudents": "Total Students"
   },
   "schedule": {
     "title": "Schedule & Task Management",

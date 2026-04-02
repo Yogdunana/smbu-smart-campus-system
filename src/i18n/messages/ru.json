@@ -65,7 +65,9 @@
     "taskCompletion": "Выполнение задач",
     "noCourses": "Сегодня нет занятий",
     "noTasks": "Нет невыполненных задач",
-    "hours": "{hours} часов"
+    "hours": "{hours} часов",
+    "totalVolunteerHours": "Всего волонтёрских часов",
+    "totalStudents": "Всего студентов"
   },
   "schedule": {
     "title": "Управление расписанием",
