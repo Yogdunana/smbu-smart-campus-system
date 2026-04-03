@@ -1,14 +1,142 @@
-# 校园综合智慧管理系统 | SMBU Smart Campus System
+# SMBU Smart Campus System
 
-深圳北理莫斯科大学"校园智慧助手"AI实战编程大赛参赛作品
+[中文](#中文) | [English](#english)
 
-## 🚀 快速部署
+---
 
-### 前置条件
-- Docker 20.10+
-- Docker Compose 2.0+
+## English
 
-### 一键部署
+An intelligent campus management platform for **Shenzhen MSU-BIT University (SMBU)**, built for the "Campus Smart Assistant" AI Programming Competition.
+
+### Features
+
+- **Schedule & Task Management** — Visual timeline (day/week/month views), personal plan CRUD with priorities
+- **Organization OA & Task Workflow** — Organization management, task boards with status tracking, cross-department task routing
+- **Student Profile Center** — Basic info, identity verification, volunteer number binding, skill tags, awards & honors
+- **Trilingual Support** — Chinese / English / Russian (Русский), switchable via the language selector
+- **Mobile Responsive** — Optimized for all screen sizes with adaptive sidebar and layouts
+- **Role-Based Access** — Student, Organization Leader, and Committee (团委) roles with dedicated views
+
+### Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Frontend | Next.js 16 (App Router) + TypeScript + Tailwind CSS v4 + shadcn/ui |
+| Backend | Next.js API Routes + Prisma ORM |
+| Database | PostgreSQL 16 |
+| Auth | NextAuth.js v5 (JWT Strategy) |
+| i18n | next-intl (zh / en / ru) |
+| Deployment | Docker Compose |
+
+### Quick Start
+
+**Prerequisites:** Docker 20.10+ and Docker Compose 2.0+
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/Yogdunana/smbu-smart-campus-system.git
+cd smbu-smart-campus-system
+
+# 2. Configure environment variables
+cp .env.example .env
+# Edit .env with your own values (see .env.example for reference)
+
+# 3. Start all services
+docker compose up -d
+
+# 4. Monitor logs
+docker compose logs -f app
+```
+
+The application will be available at `http://localhost:3000` after ~30-60 seconds (database initialization on first run).
+
+### Test Accounts
+
+All accounts share the password `123456`.
+
+| Role | Student ID | Description |
+|------|-----------|-------------|
+| Committee Admin | `admin` | Full access, can review profiles and view all organizations |
+| Student | `2023001` | Completed profile with volunteer records and skill tags |
+| Student | `2023002` | Profile pending review |
+| Org Leader | `2023003` | Leader of Student Union & Computer Association |
+| Student | `2023004` | Completed profile |
+| Student | `2023005` | Profile in draft status |
+| Org Leader | `2023006` | Leader of Computer Association |
+| Student | `2023010` | Profile rejected, can resubmit |
+
+### Project Structure
+
+```
+├── .github/workflows/    # CI/CD pipelines
+├── prisma/                # Database schema & seed data
+├── src/
+│   ├── app/               # Next.js App Router (pages & API routes)
+│   ├── components/        # React components (UI + layout)
+│   ├── i18n/              # Internationalization files (zh/en/ru)
+│   └── lib/               # Utilities, auth config, Prisma client
+├── docker-compose.yml     # Docker Compose orchestration
+├── Dockerfile             # Multi-stage Docker build
+└── .env.example          # Environment variable template
+```
+
+### CI/CD
+
+The project uses GitHub Actions for automated deployment:
+
+1. **CI** — Runs lint, type-check, and build on every push to `main`
+2. **CD** — Automatically deploys to your server via SSH after CI passes
+
+To enable deployment, configure the following **GitHub Secrets** in your repository settings:
+
+| Secret | Description |
+|--------|-------------|
+| `SERVER_HOST` | Your server's IP address |
+| `SERVER_PORT` | SSH port (default: 22) |
+| `SERVER_USER` | SSH username |
+| `SERVER_PASSWORD` | SSH password |
+| `POSTGRES_USER` | Database username |
+| `POSTGRES_PASSWORD` | Database password |
+| `POSTGRES_DB` | Database name |
+| `NEXTAUTH_URL` | Public URL of your application |
+| `NEXTAUTH_SECRET` | Random string for JWT encryption |
+
+### FAQ
+
+**Q: Cannot access after `docker compose up -d`?**
+Wait 30-60 seconds for database initialization. Check logs: `docker compose logs -f`
+
+**Q: How to reset all data?**
+```bash
+docker compose down -v  # Remove data volumes
+docker compose up -d    # Restart fresh
+```
+
+**Q: How to change the port?**
+Edit `APP_PORT` in your `.env` file.
+
+### License
+
+MIT License
+
+---
+
+## 中文
+
+深圳北理莫斯科大学"校园智慧助手"AI实战编程大赛参赛作品。
+
+### 功能特性
+
+- **时间与任务管理** — 可视化时间轴（日/周/月视图），个人计划增删改查，支持优先级
+- **组织OA与任务流转** — 组织管理，任务看板状态追踪，跨部门任务路由
+- **学生个人档案中心** — 基础信息、身份验证、志愿者号绑定、能力标签、奖项荣誉
+- **三语支持** — 中文 / English / Русский，右上角一键切换
+- **移动端适配** — 响应式布局，侧边栏抽屉，全屏幕尺寸优化
+- **角色权限** — 学生、组织负责人、团委三种角色，各有专属视图
+
+### 快速部署
+
+**前置条件：** Docker 20.10+ 和 Docker Compose 2.0+
 
 ```bash
 # 1. 克隆仓库
@@ -17,99 +145,17 @@ cd smbu-smart-campus-system
 
 # 2. 配置环境变量
 cp .env.example .env
+# 编辑 .env 填入你的配置（参考 .env.example）
 
-# 3. 一键启动（首次启动会自动初始化数据库和种子数据）
+# 3. 一键启动
 docker compose up -d
 
 # 4. 查看日志
 docker compose logs -f app
 ```
 
-### 访问系统
-- 地址：http://localhost:3000
-- 首次启动约需 30-60 秒（数据库初始化）
+访问地址：`http://localhost:3000`，首次启动约需 30-60 秒（数据库初始化）。
 
-## 📋 测试账号
-
-| 角色 | 学号 | 密码 | 说明 |
-|------|------|------|------|
-| 团委管理员 | admin | 123456 | 全局权限，可审核档案、查看所有组织 |
-| 学生 | 2023001 | 123456 | 已完善档案，有志愿记录和能力标签 |
-| 学生 | 2023002 | 123456 | 档案待审核状态 |
-| 组织负责人 | 2023003 | 123456 | 校学生会 + 计算机协会负责人 |
-| 学生 | 2023004 | 123456 | 已完善档案 |
-| 学生 | 2023005 | 123456 | 档案草稿状态 |
-| 组织负责人 | 2023006 | 123456 | 计算机协会负责人 |
-| 学生 | 2023010 | 123456 | 档案已驳回，可重新提交 |
-
-## 🌐 三语支持
-
-系统全面支持中文、English、Русский三种语言，点击右上角语言切换器即可切换。
-
-## 📦 核心功能模块
-
-### 1. 学生时间与任务管理
-- 可视化时间轴（日/周/月视图）
-- 课表信息整合（模拟API）
-- 个人计划管理（CRUD、优先级、完成状态）
-- 统筹信息同步（志愿时长、综合实践）
-- 空闲时段任务创建
-
-### 2. 组织OA与任务流转
-- 组织信息管理（创建、编辑、状态管理）
-- 任务看板（待查看/已查看/进行中/已完成）
-- 任务类型（单部门/跨部门/上下级）
-- 团委全局视图（所有组织任务进度）
-
-### 3. 学生个人档案中心
-- 基础信息管理
-- 身份信息管理
-- **志愿者号关联**（硬性要求 - 自动关联志愿记录和累计时长）
-- **能力标签**（硬性要求 - 按技术/策划/管理/运动四分类展示）
-- 奖项荣誉管理（含审核机制）
-- 档案审核功能（团委审核通过/驳回）
-
-## 🛠️ 技术栈
-
-- **前端**: Next.js 14+ (App Router) + TypeScript + Tailwind CSS + shadcn/ui
-- **后端**: Next.js API Routes + Prisma ORM
-- **数据库**: PostgreSQL 16
-- **认证**: NextAuth.js v5 (JWT)
-- **国际化**: next-intl (中/英/俄)
-- **部署**: Docker Compose
-
-## 📁 项目结构
-
-```
-├── .github/workflows/    # CI/CD
-├── prisma/                # 数据库模型和种子数据
-├── src/
-│   ├── app/               # Next.js App Router 页面和API
-│   ├── components/        # React 组件
-│   ├── i18n/              # 国际化翻译文件
-│   └── lib/               # 工具函数和配置
-├── docker-compose.yml     # Docker 编排
-├── Dockerfile             # Docker 构建
-└── .env.example          # 环境变量模板
-```
-
-## 🔧 常见问题
-
-### Q: docker compose up -d 后无法访问？
-A: 首次启动需要等待数据库初始化和种子数据导入（约30-60秒），查看日志确认：
-```bash
-docker compose logs -f
-```
-
-### Q: 如何重置数据？
-```bash
-docker compose down -v  # 删除数据卷
-docker compose up -d    # 重新启动
-```
-
-### Q: 如何修改端口？
-编辑 .env 文件中的 APP_PORT 变量。
-
-## 📄 许可证
+### 许可证
 
 MIT License

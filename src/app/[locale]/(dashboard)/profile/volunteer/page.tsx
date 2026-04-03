@@ -96,7 +96,7 @@ export default function VolunteerPage() {
         <h1 className="text-2xl font-bold tracking-tight">{t('volunteerLink')}</h1>
       </div>
 
-      {/* 志愿者号绑定卡片 */}
+      {/* Volunteer number binding card */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -133,7 +133,7 @@ export default function VolunteerPage() {
         </CardContent>
       </Card>
 
-      {/* 累计志愿时长 */}
+      {/* Total volunteer hours */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -148,7 +148,7 @@ export default function VolunteerPage() {
         </CardContent>
       </Card>
 
-      {/* 志愿记录列表 */}
+      {/* Volunteer records list */}
       <Card>
         <CardHeader>
           <CardTitle>{t('volunteerActivities')}</CardTitle>
