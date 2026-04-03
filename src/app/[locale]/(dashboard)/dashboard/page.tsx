@@ -64,7 +64,7 @@ export default async function DashboardPage() {
     // Pending profile reviews (for committee view)
     isCommittee
       ? prisma.user.count({
-          where: { profileStatus: { in: ['PENDING_REVIEW', 'REJECTED'] } },
+          where: { profileStatus: 'PENDING_REVIEW' },
         })
       : Promise.resolve(0),
   ]);

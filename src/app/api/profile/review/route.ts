@@ -8,7 +8,7 @@ export async function GET() {
   if ((session.user as any).role !== 'COMMITTEE') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const items = await prisma.user.findMany({
-    where: { profileStatus: { in: ['PENDING_REVIEW', 'REJECTED'] } },
+    where: { profileStatus: 'PENDING_REVIEW' },
     select: { id: true, studentId: true, name: true, department: true, profileStatus: true },
     orderBy: { updatedAt: 'desc' },
   });
