@@ -71,7 +71,12 @@
     "committeeView": "团委管理端",
     "studentView": "学生端",
     "activeOrgs": "个活跃组织",
-    "profileCompletionDetail": "档案完成度"
+    "profileCompletionDetail": "档案完成度",
+    "todayPlanCount": "今日 {count} 项计划",
+    "pendingTaskCount": "{count} 项待办任务",
+    "activeOrgCount": "{count} 个活跃组织",
+    "pendingReviewCount": "{count} 份待审核档案",
+    "noPendingReviews": "暂无待审核档案"
   },
   "schedule": {
     "title": "时间与任务管理",

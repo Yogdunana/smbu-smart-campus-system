@@ -71,7 +71,12 @@
     "committeeView": "Committee Admin",
     "studentView": "Student Portal",
     "activeOrgs": "Active Organizations",
-    "profileCompletionDetail": "Profile Completion"
+    "profileCompletionDetail": "Profile Completion",
+    "todayPlanCount": "{count} plans today",
+    "pendingTaskCount": "{count} pending tasks",
+    "activeOrgCount": "{count} active organizations",
+    "pendingReviewCount": "{count} pending reviews",
+    "noPendingReviews": "No pending reviews"
   },
   "schedule": {
     "title": "Schedule & Task Management",

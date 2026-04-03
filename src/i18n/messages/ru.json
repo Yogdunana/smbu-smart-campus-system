@@ -71,7 +71,12 @@
     "committeeView": "Панель комитета",
     "studentView": "Студенческий портал",
     "activeOrgs": "Активных организаций",
-    "profileCompletionDetail": "Заполненность профиля"
+    "profileCompletionDetail": "Заполненность профиля",
+    "todayPlanCount": "{count} планов на сегодня",
+    "pendingTaskCount": "{count} невыполненных задач",
+    "activeOrgCount": "{count} активных организаций",
+    "pendingReviewCount": "{count} заявок на проверку",
+    "noPendingReviews": "Нет заявок на проверку"
   },
   "schedule": {
     "title": "Управление расписанием",
