@@ -1,122 +1,202 @@
 name: CD - Deploy to Server
 
 on:
-  workflow_run:
-    workflows: ["CI"]
+  push:
     branches: [main]
-    types:
-      - completed
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-smbu-campus
+  cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    timeout-minutes: 25
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Sync code to server via SCP
-        uses: appleboy/scp-action@v0.1.7
+      - name: 部署到服务器
+        uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.SERVER_HOST }}
           port: ${{ secrets.SERVER_PORT }}
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
-          timeout: 120s
-          source: "."
-          target: "/opt/smbu-campus"
-          strip_components: 0
-          rm: true
-
-      - name: Deploy on server via SSH
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          port: ${{ secrets.SERVER_PORT }}
-          username: ${{ secrets.SERVER_USER }}
-          password: ${{ secrets.SERVER_PASSWORD }}
-          timeout: 120s
-          command_timeout: 30m
+          command_timeout: 25m
           script: |
             set -e
+            echo "=========================================="
+            echo "  SMBU Campus - 自动部署"
+            echo "  时间: $(date '+%Y-%m-%d %H:%M:%S')"
+            echo "=========================================="
 
-            echo "=== System Info ==="
-            uname -a
-            cat /etc/os-release 2>/dev/null | head -3
-            echo ""
+            # ---- 1. 安装 Git ----
+            if ! command -v git &>/dev/null; then
+              apt-get install -y -qq git
+            fi
+            echo ">>> [1/10] Git 已就绪"
 
-            echo "=== Checking Docker ==="
-            if ! command -v docker &> /dev/null; then
-              echo "Installing Docker using Aliyun mirror..."
-              if command -v yum &> /dev/null; then
-                yum install -y yum-utils
-                yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
-                sed -i 's+download.docker.com+mirrors.aliyun.com/docker-ce+' /etc/yum.repos.d/docker-ce.repo
-                yum install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-              elif command -v apt-get &> /dev/null; then
-                apt-get update
-                apt-get install -y ca-certificates curl gnupg
-                install -m 0755 -d /etc/apt/keyrings
-                curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-                chmod a+r /etc/apt/keyrings/docker.gpg
-                echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://mirrors.aliyun.com/docker-ce/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-                apt-get update
-                apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-              else
-                curl -fsSL https://get.docker.com | sh -s docker --mirror Aliyun
-              fi
-              systemctl start docker
+            # ---- 2. 确保 Nginx 已安装 ----
+            if ! command -v nginx &>/dev/null; then
+              apt-get install -y -qq nginx
+            fi
+            echo ">>> [2/10] 系统 Nginx 已就绪"
+
+            # ---- 3. 确保 Docker 已安装 ----
+            if ! command -v docker &>/dev/null; then
+              echo ">>> [3/10] 安装 Docker..."
+              apt-get update -qq
+              apt-get install -y -qq ca-certificates curl gnupg lsb-release apt-transport-https
+              install -m 0755 -d /etc/apt/keyrings
+              curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg 2>/dev/null || true
+              chmod a+r /etc/apt/keyrings/docker.gpg
+              echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+              apt-get update -qq
+              apt-get install -y -qq docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
               systemctl enable docker
-              echo "Docker installed: $(docker --version)"
+              systemctl start docker
             else
-              echo "Docker already installed: $(docker --version)"
+              echo ">>> [3/10] Docker 已安装: $(docker --version)"
             fi
 
-            # Configure Docker mirror for China - use multiple working mirrors
-            mkdir -p /etc/docker
-            cat > /etc/docker/daemon.json << 'DOCKEREOF'
-            {
-              "registry-mirrors": [
-                "https://docker.1ms.run",
-                "https://docker.xuanyuan.me",
-                "https://docker.m.daocloud.io"
-              ]
-            }
-            DOCKEREOF
-            systemctl daemon-reload
-            systemctl restart docker
+            # ---- 4. 克隆/更新代码 ----
+            INSTALL_DIR="/opt/smbu-campus"
+            if [ -d "${INSTALL_DIR}/.git" ]; then
+              echo ">>> [4/10] 拉取最新代码..."
+              cd "${INSTALL_DIR}"
+              git fetch origin main
+              git reset --hard origin/main
+            else
+              echo ">>> [4/10] 首次部署，克隆代码..."
+              git clone https://github.com/Yogdunana/smbu-smart-campus-system.git "${INSTALL_DIR}"
+              cd "${INSTALL_DIR}"
+              git checkout main
+            fi
 
-            echo "Docker Compose: $(docker compose version 2>/dev/null || echo 'not found')"
-            echo ""
-
-            cd /opt/smbu-campus
-
-            # Create .env file (overwrite to update config)
-            echo "=== Creating .env file ==="
-            cat > .env << ENVEOF
-            DATABASE_URL=postgresql://smbu:***REDACTED***@db:5432/smbu_campus
-            NEXTAUTH_URL=http://***REDACTED***:3000
-            NEXTAUTH_SECRET=deploy-secret-change-in-production-$(openssl rand -hex 16)
+            # ---- 5. 配置环境变量（仅首次创建，不覆盖）----
+            echo ">>> [5/10] 检查环境变量..."
+            if [ ! -f "${INSTALL_DIR}/.env" ]; then
+              echo ">>> 首次部署，创建 .env..."
+              cat > "${INSTALL_DIR}/.env" << ENVEOF
+            POSTGRES_USER=smbu
+            POSTGRES_PASSWORD=smbu_default_pass
+            POSTGRES_DB=smbu_campus
+            DATABASE_URL=postgresql://smbu:smbu_default_pass@db:5432/smbu_campus
+            NEXTAUTH_URL=https://campus.yogdunana.cn
+            NEXTAUTH_SECRET=$(openssl rand -hex 32)
             AUTH_TRUST_HOST=true
             APP_PORT=3000
             ENVEOF
+              chmod 600 "${INSTALL_DIR}/.env"
+              echo ">>> .env 已创建"
+            else
+              echo ">>> .env 已存在，保留现有配置"
+            fi
 
-            # Stop existing containers if any
-            echo "=== Stopping existing containers ==="
+            # ---- 6. 构建 Docker 镜像 ----
+            echo ">>> [6/10] 构建 Docker 镜像..."
+            cd "${INSTALL_DIR}"
+
             docker compose down 2>/dev/null || true
+            docker compose build 2>&1 | tail -10
 
-            # Build and start services
-            echo "=== Building and starting services ==="
-            docker compose up -d --build
+            # ---- 7. 启动服务 ----
+            echo ">>> [7/10] 启动服务..."
+            docker compose up -d 2>&1 | tail -10
 
-            # Wait for services to be healthy
-            echo "=== Waiting for services to start ==="
-            sleep 20
-
-            # Check container status
-            echo "=== Container Status ==="
+            # ---- 8. 等待服务启动 ----
+            echo ">>> [8/10] 等待服务启动..."
+            sleep 30
             docker compose ps
 
+            HEALTH_OK=false
+            for i in 1 2 3 4 5 6; do
+              if curl -sf --max-time 5 http://127.0.0.1:3000 > /dev/null 2>&1; then
+                HEALTH_OK=true
+                echo ">>> 服务启动成功!"
+                break
+              fi
+              echo ">>> 等待服务... (${i}/6)"
+              sleep 10
+            done
+
+            if [ "${HEALTH_OK}" = "false" ]; then
+              echo ">>> 警告: 服务启动检查未通过"
+              docker compose logs --tail=20 app 2>&1 || true
+            fi
+
+            # ---- 9. 配置系统 Nginx ----
+            echo ">>> [9/10] 配置系统 Nginx..."
+
+            cp -f "${INSTALL_DIR}/deploy/nginx/sites-available/campus.yogdunana.cn" /etc/nginx/sites-available/campus.yogdunana.cn
+            ln -sf /etc/nginx/sites-available/campus.yogdunana.cn /etc/nginx/sites-enabled/campus.yogdunana.cn
+
+            mkdir -p /var/www/certbot
+            chmod 755 /var/www/certbot
+
+            systemctl enable nginx
+            systemctl start nginx
+
+            # ---- 10. SSL 证书 ----
+            echo ">>> [10/10] 配置 SSL 证书..."
+
+            if ! command -v certbot &>/dev/null; then
+              apt-get install -y -qq certbot 2>/dev/null || true
+            fi
+
+            NEED_SSL=true
+            if [ -f "/etc/letsencrypt/live/campus.yogdunana.cn/fullchain.pem" ]; then
+              CERT_DOMAIN=$(openssl x509 -in /etc/letsencrypt/live/campus.yogdunana.cn/fullchain.pem -noout -subject -nameopt RFC2253 2>/dev/null | grep -oP 'CN=\K[^,/]+' || echo "")
+              CERT_EXPIRE=$(openssl x509 -in /etc/letsencrypt/live/campus.yogdunana.cn/fullchain.pem -noout -enddate 2>/dev/null | cut -d= -f2)
+              CERT_EXPIRE_TS=$(date -d "${CERT_EXPIRE}" +%s 2>/dev/null || echo 0)
+              NOW_TS=$(date +%s)
+              if [ "${CERT_DOMAIN}" = "campus.yogdunana.cn" ] && [ "${CERT_EXPIRE_TS}" -gt "${NOW_TS}" ]; then
+                NEED_SSL=false
+                echo ">>> SSL 证书有效 (CN=${CERT_DOMAIN}, 过期=${CERT_EXPIRE})"
+              fi
+            fi
+
+            if [ "${NEED_SSL}" = "true" ] && command -v certbot &>/dev/null; then
+              echo ">>> 获取 SSL 证书..."
+              rm -rf /etc/letsencrypt/live/campus.yogdunana.cn 2>/dev/null || true
+              rm -rf /etc/letsencrypt/archive/campus.yogdunana.cn 2>/dev/null || true
+              rm -f /etc/letsencrypt/renewal/campus.yogdunana.cn.conf 2>/dev/null || true
+              mkdir -p /var/www/certbot/.well-known/acme-challenge
+              chmod -R 755 /var/www/certbot
+
+              certbot certonly --webroot \
+                --webroot-path=/var/www/certbot \
+                -d campus.yogdunana.cn \
+                --non-interactive --agree-tos \
+                --email admin@yogdunana.com 2>&1
+
+              if [ $? -eq 0 ] && [ -f "/etc/letsencrypt/live/campus.yogdunana.cn/fullchain.pem" ]; then
+                echo ">>> SSL 证书获取成功!"
+              else
+                echo ">>> SSL 证书获取失败，HTTP 模式继续运行"
+              fi
+            fi
+
+            nginx -t 2>&1 && systemctl reload nginx
+            echo ">>> 系统 Nginx 已重新加载"
+
             echo ""
-            echo "=== Deployment completed successfully! ==="
-            echo "Application should be available at http://$(hostname -I | awk '{print $1}'):3000"
+            echo "=========================================="
+            echo "  部署完成！"
+            echo "  域名: campus.yogdunana.cn"
+            echo "  HTTP:  http://campus.yogdunana.cn"
+            if [ -f "/etc/letsencrypt/live/campus.yogdunana.cn/fullchain.pem" ]; then
+              echo "  HTTPS: https://campus.yogdunana.cn"
+            else
+              echo "  HTTPS: 待配置 SSL 证书"
+            fi
+            echo "  其他网站: 不受影响"
+            echo "=========================================="
+
+      - name: 部署结果
+        if: always()
+        run: |
+          if [[ "${{ job.status }}" == "success" ]]; then
+            echo "✅ 部署成功 - campus.yogdunana.cn"
+          else
+            echo "❌ 部署失败 - 请检查 Actions 日志"
+          fi
