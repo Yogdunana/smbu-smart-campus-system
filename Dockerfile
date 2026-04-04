@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y openssl --no-install-recommends && rm -
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npx prisma generate && npm run build
+RUN npx prisma generate && NODE_OPTIONS="--max-old-space-size=1536" npm run build
 
 # Stage 3: Production
 FROM node:20-slim AS runner
